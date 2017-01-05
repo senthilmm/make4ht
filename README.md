@@ -88,7 +88,11 @@ htlatex
 
 input 
 
-:    input file
+:    it is output file name in fact
+
+tex_file
+
+:    input TeX file
 
 latex_par 
 
@@ -121,7 +125,8 @@ repetition
 
 correct_exit 
 
-:     expected `exit code` from the command.
+:    expected `exit code` from the command. The compilation will be terminted
+     when the command `exit code` is different.
 
 
 You may add your own parameters, they will be accessible in templates and
@@ -148,9 +153,10 @@ matches  which may be called  on the generated files:
     Make:match("html$", "tidy -m -xml -utf8 -q -i ${filename}")
 
 It tests filenames with `Lua` pattern matching and on matched items will
-execute command or function, specified in the second argument. Parameters are
-the same as in previous section, except `filename`, which contains generated
-output name.
+execute command or function, specified in the second argument. For functions,
+two arguments are passed, first one is the current filename, the second one
+table with parameters. These parameters are the same as in previous section,
+except for `filename`, which contains generated output name.
 
 ### Filters
 
@@ -188,10 +194,16 @@ hruletohr
 
 :   `\hrule` commands are translated to series of underscore characters
     by `tex4ht`, this filter translate these underscores to `<hr>` elements
+
 entites 
 
 :    convert prohibited named entities to numeric entities (currently, only `&nbsp;`, as it causes validation errors, and `tex4ht` is producing it sometimes
 
+fix-links
+
+:    replace colons in local links and `id` attributes with underscores. Some
+     cross-reference commands may produce colons in internal links, which results in
+     validation error.
 
 Function `filter` accepts also function arguments, in this case this function 
 takes file contents as parameter and modified contents are returned.
@@ -274,6 +286,7 @@ LaTeX is called only once when `make4ht` is called with
     -n,--no-tex4ht  Disable dvi file processing with tex4ht command
     -s,--shell-escape Enables running external programs from LaTeX
     -u,--utf8  For output documents in utf8 encoding
+    -v,--version  Print version number
     -x,--xetex Use xelatex for document compilation
     <filename> (string) Input file name
 

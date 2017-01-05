@@ -92,9 +92,13 @@ function parse_lg(filename)
 end
 
 
+-- 
 local cp_func = os.type == "unix" and "cp" or "copy"
+-- maybe it would be better to actually move the files
+-- in reality it isn't.
+-- local cp_func = os.type == "unix" and "mv" or "move"
 function cp(src,dest)
-	local command = string.format('%s %s %s', cp_func, src, dest)
+	local command = string.format('%s "%s" "%s"', cp_func, src, dest)
 	if cp_func == "copy" then command = command:gsub("/",'\\') end
 	print("Copy: "..command)
 	os.execute(command)
@@ -248,7 +252,7 @@ env.Make:add("htlatex",function(par)
 "\\HCode\\expandafter\\def\\csname tex4ht\\endcsname{#1,html}\\def"..
 "\\HCode####1{\\documentstyle[tex4ht,}\\@ifnextchar[{\\HCode}{"..
 "\\documentstyle[tex4ht]}}}\\makeatother\\HCode ${tex4ht_sty_par}.a.b.c."..
-"\\input ${input}'" 
+"\\input ${tex_file}'" 
   if os.type == "windows" then
     command = command:gsub("'",'')
   end
@@ -270,16 +274,20 @@ env.Make:add("htlatex",function(par)
 	return 0 
 end
 ,{correct_exit=0})
-env.Make:add("tex4ht","tex4ht ${tex4ht_par} ${input}", nil, 1)
-env.Make:add("t4ht","t4ht ${t4ht_par} ${input}.${ext}",{ext="dvi"},1)
+env.Make:add("tex4ht","tex4ht ${tex4ht_par} \"${input}.${dvi}\"", nil, 1)
+env.Make:add("t4ht","t4ht ${t4ht_par} \"${input}.${ext}\"",{ext="dvi"},1)
 
 function load_config(settings, config_name)
 	local settings = settings or main_settings
 	env.settings = settings
 	env.mode = settings.mode
-	local config_name = config_name or "config.lua"
+	local config_name = kpse.find_file(config_name, 'texmfscripts') or config_name
 	local f = io.open(config_name,"r")
-	if not f then return env, "Cannot open config file" end
+	if not f then 
+    print("Cannot open config file", config_name)
+    return  env
+  end
+  print("Using build file", config_name)
 	local code = f:read("*all")
 	local fn, msg = run(code,env)
 	if not fn then print(msg) end
